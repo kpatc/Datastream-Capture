@@ -13,7 +13,6 @@ running the whole CDC infrastructure (Kafka Connect, Debezium, PostgreSQL etc.)
 
 ### Architecture Overview
 
-![architecture-overview.png](./_docs/img/architecture-overview.png)
 
 The following components are available when you run the whole infrastructure:
 
@@ -22,7 +21,6 @@ The following components are available when you run the whole infrastructure:
 * [Kafka Connect](https://kafka.apache.org/documentation/#connect)
 * [Schema Registry](https://docs.confluent.io/platform/current/schema-registry/index.html)
 * [Kowl UI](https://github.com/cloudhut/kowl)
-* [Kafka Connect UI](https://github.com/lensesio/kafka-connect-ui)
 * [PostgreSQL](https://www.postgresql.org/)
 * [Adminer](https://www.adminer.org/)
 
@@ -50,17 +48,20 @@ docker compose ps
 # adminer             adminer             running              0.0.0.0:7775->8080/tcp, :::7775->8080/tcp
 # kafka               kafka               running              0.0.0.0:9092->9092/tcp, :::9092->9092/tcp, 0.0.0.0:9101->9101/tcp, :::9101->9101/tcp
 # kafka-connect       kafka-connect       running (starting)   0.0.0.0:8083->8083/tcp, :::8083->8083/tcp, 9092/tcp
-# kafka-connect-ui    kafka-connect-ui    running              0.0.0.0:8000->8000/tcp, :::8000->8000/tcp
 # kowl                kowl                running              0.0.0.0:8080->8080/tcp, :::8080->8080/tcp
 # postgres            postgres            running              0.0.0.0:5432->5432/tcp, :::5432->5432/tcp, 0.0.0.0:6532->6532/tcp, :::6532->6532/tcp
 # schema-registry     schema-registry     running              0.0.0.0:8081->8081/tcp, :::8081->8081/tcp
 # zookeeper           zookeeper           running              0.0.0.0:2181->2181/tcp, :::2181->2181/tcp, 2888/tcp, 3888/tcp
 ```
+#### 3. Create Debezium Source connector 
+```shell
+curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" \
+http://localhost:8083/connectors/ -d @register-postgres.json
+```
 
 #### 3. Verify that Debezium Source connector is successfully deployed
 
-Run below command or open your web browser and go to Kafka Connect UI [page](http://localhost:8000/#/cluster/dev) to
-verify cdc connector status.
+Run below command  to verify cdc connector status.
 
 ```shell
 curl http://localhost:8083/connectors/postgres-cdc-demo | jq
@@ -88,8 +89,7 @@ curl http://localhost:8083/connectors/postgres-cdc-demo | jq
 # }
 ```
 
-*** *Docker Compose file contains a setup that will automatically install a Kafka Connect
-plugin (`debezium/debezium-connector-postgresql`) and deploy Source Connector(`postgres-cdc-demo`).*
+
 
 #### 4. View exported data from PostgreSQL
 
@@ -122,7 +122,6 @@ docker compose down -v
 | Name | Endpoint | 
 | -------------:|:--------:|
 | `Kafka Connect` | [http://localhost:8088/](http://localhost:8088/) |
-| `Kafka Connect UI` | [http://localhost:8000/](http://localhost:8000/) |
 | `Kowl UI` | [http://localhost:8080/](http://localhost:8080/) |
 | `Adminer - Demo Table view (username: cdcdemo, password: cdcdemo)` | [http://localhost:7775/?pgsql=postgres&username=cdcdemo&db=demo_db&ns=public&select=demo_table](http://localhost:7775/?pgsql=postgres&username=cdcdemo&db=demo_db&ns=public&select=demo_table) |
 | `Schema-registry` | [http://localhost:8081/](http://localhost:8081/) |
@@ -135,7 +134,6 @@ docker compose down -v
 * [Confluent Hub](https://www.confluent.io/hub/)
 * [PostgreSQL](https://www.postgresql.org/)
 * [Adminer](https://www.adminer.org/)
-* [Kafka Connect UI](https://github.com/lensesio/kafka-connect-ui)
 * [cloudhut/kowl](https://github.com/cloudhut/kowl)
 
 ## License
