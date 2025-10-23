@@ -1,0 +1,4 @@
+apache-flink==1.17.0
+snowflake-connector-python==3.10.0
+kafka-python==2.0.2
+python-dotenv==1.0.0
