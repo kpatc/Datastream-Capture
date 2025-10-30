@@ -80,7 +80,7 @@ services:
     restart: on-failure
     container_name: kowl
     ports:
-        - "8080:8080"
+        - "8090:8080"
     depends_on:
         - kafka
     environment:

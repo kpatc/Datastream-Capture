@@ -1,0 +1,29 @@
+{
+  "messages": {
+    "consumed": 0,
+    "processed": 0,
+    "validated": 0,
+    "rejected": 0,
+    "loaded": 0
+  },
+  "batches": {
+    "total": 0,
+    "average_size": 0.0,
+    "average_processing_time": 0.0
+  },
+  "errors": {
+    "total": 0,
+    "kafka": 0,
+    "snowflake": 0,
+    "validation": 0,
+    "parsing": 0
+  },
+  "performance": {
+    "uptime_seconds": 3.092633008956909,
+    "throughput_msg_per_sec": 0.0,
+    "success_rate_percent": 0.0,
+    "error_rate_percent": 0.0
+  },
+  "operations": {},
+  "timestamp": "2025-10-30T19:20:06.190574"
+}

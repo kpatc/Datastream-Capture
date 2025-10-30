@@ -11,7 +11,7 @@ load_dotenv()
 class Config:
     """Configuration class for the CDC pipeline"""
     
-    # Snowflake Configuration (adaptées à vos variables .env)
+    # Snowflake Configuration (adapted to your .env variables)
     SNOWFLAKE_ACCOUNT = os.getenv('SNOWFLAKE_URL', '').replace('.snowflakecomputing.com', '')
     SNOWFLAKE_USER = os.getenv('SNOWFLAKE_USER')
     SNOWFLAKE_PASSWORD = os.getenv('SNOWFLAKE_PASS')
@@ -29,9 +29,21 @@ class Config:
     # Schema Registry
     SCHEMA_REGISTRY_URL = os.getenv('SCHEMA_REGISTRY_URL', 'http://localhost:8081')
     
-    # Processing Configuration
-    BATCH_SIZE = int(os.getenv('BATCH_SIZE', '100'))
-    BATCH_TIMEOUT = int(os.getenv('BATCH_TIMEOUT', '5'))  # seconds
+    # Pipeline Mode: 'realtime' or 'batch'
+    PIPELINE_MODE = os.getenv('PIPELINE_MODE', 'realtime')
+    
+    # Real-time processing configuration
+    # Micro-batch size for efficient Snowflake loading (process as soon as we have data)
+    BATCH_SIZE = int(os.getenv('BATCH_SIZE', '50'))  # Small batches for low latency
+    # Batch timeout in seconds (process even if batch not full)
+    BATCH_TIMEOUT = int(os.getenv('BATCH_TIMEOUT', '2'))  # 2 seconds max wait
+    # Kafka poll timeout in seconds
+    KAFKA_POLL_TIMEOUT = float(os.getenv('KAFKA_POLL_TIMEOUT', '0.5'))  # 500ms
+    
+    # For batch mode: max duration in seconds (default 5 minutes)
+    BATCH_MAX_DURATION = int(os.getenv('BATCH_MAX_DURATION', '300'))
+    # For batch mode: max messages to process (default 10000)
+    BATCH_MAX_MESSAGES = int(os.getenv('BATCH_MAX_MESSAGES', '10000'))
     
     @classmethod
     def validate(cls):
@@ -46,7 +58,7 @@ class Config:
         if missing:
             raise ValueError(f"Missing required configuration: {', '.join(missing)}")
         
-        print(f"✓ Configuration validée:")
+        print(f"✓ Configuration validated:")
         print(f"  - Account: {cls.SNOWFLAKE_ACCOUNT}")
         print(f"  - User: {cls.SNOWFLAKE_USER}")
         print(f"  - Database: {cls.SNOWFLAKE_DATABASE}")

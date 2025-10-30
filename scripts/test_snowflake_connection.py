@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Script pour tester la connexion Snowflake avec vos credentials
+Script to test Snowflake connection with your credentials
 """
 import sys
 import os
 
-# Ajouter le chemin src
+# Add src path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from config import Config
@@ -13,54 +13,54 @@ from snowflake_connector import SnowflakeConnector
 
 
 def test_snowflake_connection():
-    """Tester la connexion à Snowflake"""
+    """Test Snowflake connection"""
     print("=" * 60)
-    print("Test de connexion Snowflake")
+    print("Snowflake Connection Test")
     print("=" * 60)
     print()
     
     try:
-        # Valider la configuration
-        print("1. Validation de la configuration...")
+        # Validate configuration
+        print("1. Validating configuration...")
         Config.validate()
         print()
         
-        # Créer le connecteur
-        print("2. Création du connecteur Snowflake...")
+        # Create connector
+        print("2. Creating Snowflake connector...")
         connector = SnowflakeConnector()
         print()
         
-        # Tester la connexion
-        print("3. Test de connexion...")
+        # Test connection
+        print("3. Testing connection...")
         with connector.get_connection() as conn:
             cursor = conn.cursor()
             
-            # Vérifier la version
+            # Check version
             cursor.execute("SELECT CURRENT_VERSION()")
             version = cursor.fetchone()[0]
             print(f"   ✓ Snowflake version: {version}")
             
-            # Vérifier le compte
+            # Check account
             cursor.execute("SELECT CURRENT_ACCOUNT()")
             account = cursor.fetchone()[0]
             print(f"   ✓ Account: {account}")
             
-            # Vérifier le user
+            # Check user
             cursor.execute("SELECT CURRENT_USER()")
             user = cursor.fetchone()[0]
             print(f"   ✓ User: {user}")
             
-            # Vérifier le role
+            # Check role
             cursor.execute("SELECT CURRENT_ROLE()")
             role = cursor.fetchone()[0]
             print(f"   ✓ Role: {role}")
             
-            # Vérifier la database
+            # Check database
             cursor.execute("SELECT CURRENT_DATABASE()")
             db = cursor.fetchone()[0]
             print(f"   ✓ Database: {db}")
             
-            # Vérifier le warehouse
+            # Check warehouse
             cursor.execute("SELECT CURRENT_WAREHOUSE()")
             wh = cursor.fetchone()[0]
             print(f"   ✓ Warehouse: {wh}")
@@ -68,12 +68,12 @@ def test_snowflake_connection():
             cursor.close()
         
         print()
-        print("4. Création de la table TRANSACTIONS...")
+        print("4. Creating TRANSACTIONS table...")
         connector.create_table_if_not_exists()
         print()
         
-        # Vérifier que la table existe
-        print("5. Vérification de la table...")
+        # Verify table exists
+        print("5. Verifying table...")
         with connector.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(f"""
@@ -85,22 +85,22 @@ def test_snowflake_connection():
             table_exists = cursor.fetchone()[0]
             
             if table_exists:
-                print(f"   ✓ Table {Config.SNOWFLAKE_TABLE} existe")
+                print(f"   ✓ Table {Config.SNOWFLAKE_TABLE} exists")
                 
-                # Compter les enregistrements
+                # Count records
                 count = connector.get_record_count()
-                print(f"   ✓ Nombre d'enregistrements: {count}")
+                print(f"   ✓ Number of records: {count}")
             else:
-                print(f"   ✗ Table {Config.SNOWFLAKE_TABLE} n'existe pas")
+                print(f"   ✗ Table {Config.SNOWFLAKE_TABLE} does not exist")
             
             cursor.close()
         
         print()
         print("=" * 60)
-        print("✓ TOUS LES TESTS SONT PASSÉS AVEC SUCCÈS!")
+        print("✓ ALL TESTS PASSED SUCCESSFULLY!")
         print("=" * 60)
         print()
-        print("Vous pouvez maintenant lancer le pipeline:")
+        print("You can now run the pipeline:")
         print("  ./scripts/run_pipeline.sh")
         print()
         
@@ -109,15 +109,15 @@ def test_snowflake_connection():
     except Exception as e:
         print()
         print("=" * 60)
-        print("✗ ERREUR DE CONNEXION")
+        print("✗ CONNECTION ERROR")
         print("=" * 60)
-        print(f"Erreur: {e}")
+        print(f"Error: {e}")
         print()
-        print("Vérifiez:")
-        print("  1. Vos credentials dans .env sont corrects")
-        print("  2. Votre compte Snowflake est actif")
-        print("  3. Le warehouse COMPUTE_WH existe et est disponible")
-        print("  4. La database CDC_DB existe")
+        print("Verify:")
+        print("  1. Your credentials in .env are correct")
+        print("  2. Your Snowflake account is active")
+        print("  3. The warehouse COMPUTE_WH exists and is available")
+        print("  4. The database CDC_DB exists")
         print()
         return False
 

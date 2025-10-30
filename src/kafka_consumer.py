@@ -88,6 +88,7 @@ class CDCKafkaConsumer:
             "ts_ms": 1234567890
         }
         """
+        message = None  # Initialize message variable
         try:
             if not message_value:
                 return None
@@ -148,8 +149,8 @@ class CDCKafkaConsumer:
     
     def _parse_decimal(self, amount_value) -> Optional[float]:
         """
-        Parse Debezium Decimal field (can be bytes, int, float, or string)
-        Debezium encodes DECIMAL as base64 bytes with scale parameter
+        Parse Debezium Decimal field (can be bytes, int, float, base64 string, or dict)
+        Debezium encodes DECIMAL as base64 string for pgoutput plugin
         """
         if not amount_value:
             return None
@@ -159,25 +160,42 @@ class CDCKafkaConsumer:
             if isinstance(amount_value, (int, float)):
                 return float(amount_value)
             
-            # If it's a string representation
+            # If it's a dict with 'value' and 'scale' (Avro format)
+            if isinstance(amount_value, dict):
+                value = amount_value.get('value')
+                scale = amount_value.get('scale', 2)
+                if value:
+                    return self._decode_decimal_bytes(value, scale)
+            
+            # If it's a string - could be base64 or numeric
             if isinstance(amount_value, str):
-                return float(amount_value)
+                # Try as direct numeric first
+                try:
+                    return float(amount_value)
+                except ValueError:
+                    # It's base64 encoded - decode it
+                    import base64
+                    decoded_bytes = base64.b64decode(amount_value)
+                    # DECIMAL(10,2) has scale=2
+                    return self._decode_decimal_bytes(decoded_bytes, scale=2)
             
             # If it's bytes (Debezium Decimal encoding)
             if isinstance(amount_value, bytes):
-                # Decode bytes to integer then apply scale (2 decimal places)
-                import struct
-                # Unpack big-endian bytes
-                value_int = int.from_bytes(amount_value, byteorder='big', signed=True)
-                # Apply scale (defined in schema as 2 for DECIMAL(10,2))
-                return value_int / 100.0
+                return self._decode_decimal_bytes(amount_value, scale=2)
             
-            logger.warning(f"Unknown amount format: {type(amount_value)}")
+            logger.warning(f"Unknown amount format: {type(amount_value)} = {amount_value}")
             return None
             
         except Exception as e:
             logger.warning(f"Error parsing amount {amount_value}: {e}")
             return None
+    
+    def _decode_decimal_bytes(self, value_bytes: bytes, scale: int) -> float:
+        """Decode Debezium decimal bytes to float"""
+        # Convert bytes to integer (big-endian, signed)
+        value_int = int.from_bytes(value_bytes, byteorder='big', signed=True)
+        # Apply scale (divide by 10^scale)
+        return value_int / (10 ** scale)
     
     def _convert_timestamp(self, timestamp) -> Optional[str]:
         """Convert various timestamp formats to ISO format string"""
@@ -198,71 +216,6 @@ class CDCKafkaConsumer:
             return str(timestamp)
         except Exception as e:
             logger.warning(f"Error converting timestamp {timestamp}: {e}")
-            return None
-    
-    def _parse_amount(self, amount_value) -> Optional[float]:
-        """
-        Parse amount field which can be:
-        - Direct numeric value
-        - Base64 encoded decimal (Debezium format for DECIMAL types)
-        - Dictionary with 'scale' and 'value' (base64)
-        """
-        if not amount_value:
-            return None
-        
-        try:
-            # If it's already a number, return it
-            if isinstance(amount_value, (int, float)):
-                return float(amount_value)
-            
-            # If it's a string that looks like a number
-            if isinstance(amount_value, str):
-                try:
-                    return float(amount_value)
-                except ValueError:
-                    # It's base64 encoded, decode it
-                    pass
-            
-            # Debezium encodes DECIMAL as base64
-            # Format: base64 string representing the unscaled value
-            if isinstance(amount_value, str):
-                try:
-                    # Decode base64
-                    decoded = base64.b64decode(amount_value)
-                    
-                    # Convert bytes to integer (big-endian)
-                    unscaled_value = int.from_bytes(decoded, byteorder='big', signed=True)
-                    
-                    # PostgreSQL DECIMAL(10,2) has scale=2
-                    # So divide by 10^2 = 100
-                    scale = 2
-                    amount = unscaled_value / (10 ** scale)
-                    
-                    return float(amount)
-                except Exception as e:
-                    logger.warning(f"Error decoding base64 amount {amount_value}: {e}")
-                    return None
-            
-            # If it's a dict with scale and value (alternative Debezium format)
-            if isinstance(amount_value, dict):
-                scale = amount_value.get('scale', 2)
-                value = amount_value.get('value')
-                
-                if value:
-                    if isinstance(value, str):
-                        decoded = base64.b64decode(value)
-                        unscaled_value = int.from_bytes(decoded, byteorder='big', signed=True)
-                    else:
-                        unscaled_value = int(value)
-                    
-                    amount = unscaled_value / (10 ** scale)
-                    return float(amount)
-            
-            logger.warning(f"Unknown amount format: {amount_value} (type: {type(amount_value)})")
-            return None
-            
-        except Exception as e:
-            logger.error(f"Error parsing amount {amount_value}: {e}")
             return None
     
     def validate_record(self, record: Dict[str, Any]) -> bool:

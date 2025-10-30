@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Script pour créer la database et les tables dans Snowflake
+Script to create database and tables in Snowflake
 """
 import sys
 import os
 
-# Ajouter le chemin src
+# Add src path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from config import Config
@@ -13,15 +13,15 @@ import snowflake.connector
 
 
 def setup_snowflake_database():
-    """Créer la database, schema et tables dans Snowflake"""
+    """Create database, schema and tables in Snowflake"""
     print("=" * 60)
-    print("Setup Snowflake Database pour CDC")
+    print("Setup Snowflake Database for CDC")
     print("=" * 60)
     print()
     
     try:
-        # Connexion sans spécifier de database
-        print("1. Connexion à Snowflake...")
+        # Connect without specifying database
+        print("1. Connecting to Snowflake...")
         conn = snowflake.connector.connect(
             account=Config.SNOWFLAKE_ACCOUNT,
             user=Config.SNOWFLAKE_USER,
@@ -30,27 +30,27 @@ def setup_snowflake_database():
             role=Config.SNOWFLAKE_ROLE
         )
         cursor = conn.cursor()
-        print("   ✓ Connecté")
+        print("   ✓ Connected")
         print()
         
-        # Créer la database
-        print(f"2. Création de la database {Config.SNOWFLAKE_DATABASE}...")
+        # Create database
+        print(f"2. Creating database {Config.SNOWFLAKE_DATABASE}...")
         cursor.execute(f"CREATE DATABASE IF NOT EXISTS {Config.SNOWFLAKE_DATABASE}")
-        print(f"   ✓ Database {Config.SNOWFLAKE_DATABASE} créée ou existe déjà")
+        print(f"   ✓ Database {Config.SNOWFLAKE_DATABASE} created or already exists")
         
-        # Utiliser la database
+        # Use database
         cursor.execute(f"USE DATABASE {Config.SNOWFLAKE_DATABASE}")
         print()
         
-        # Créer le schema
-        print(f"3. Création du schema {Config.SNOWFLAKE_SCHEMA}...")
+        # Create schema
+        print(f"3. Creating schema {Config.SNOWFLAKE_SCHEMA}...")
         cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {Config.SNOWFLAKE_SCHEMA}")
         cursor.execute(f"USE SCHEMA {Config.SNOWFLAKE_SCHEMA}")
-        print(f"   ✓ Schema {Config.SNOWFLAKE_SCHEMA} créé ou existe déjà")
+        print(f"   ✓ Schema {Config.SNOWFLAKE_SCHEMA} created or already exists")
         print()
         
-        # Créer la table transactions
-        print("4. Création de la table TRANSACTIONS...")
+        # Create transactions table
+        print("4. Creating TRANSACTIONS table...")
         create_table_sql = f"""
         CREATE TABLE IF NOT EXISTS {Config.SNOWFLAKE_TABLE} (
             transaction_id INTEGER PRIMARY KEY,
@@ -65,11 +65,11 @@ def setup_snowflake_database():
         )
         """
         cursor.execute(create_table_sql)
-        print(f"   ✓ Table {Config.SNOWFLAKE_TABLE} créée")
+        print(f"   ✓ Table {Config.SNOWFLAKE_TABLE} created")
         print()
         
-        # Créer la vue ACTIVE_TRANSACTIONS
-        print("5. Création de la vue ACTIVE_TRANSACTIONS...")
+        # Create ACTIVE_TRANSACTIONS view
+        print("5. Creating ACTIVE_TRANSACTIONS view...")
         cursor.execute("""
         CREATE OR REPLACE VIEW ACTIVE_TRANSACTIONS AS
         SELECT 
@@ -104,11 +104,11 @@ def setup_snowflake_database():
         GROUP BY DATE(created_at), status
         ORDER BY transaction_date DESC, status
         """)
-        print("   ✓ Vue TRANSACTION_ANALYTICS créée")
+        print("   ✓ View TRANSACTION_ANALYTICS created")
         print()
         
-        # Créer la vue USER_TRANSACTION_SUMMARY
-        print("7. Création de la vue USER_TRANSACTION_SUMMARY...")
+        # Create USER_TRANSACTION_SUMMARY view
+        print("7. Creating USER_TRANSACTION_SUMMARY view...")
         cursor.execute("""
         CREATE OR REPLACE VIEW USER_TRANSACTION_SUMMARY AS
         SELECT 
@@ -122,20 +122,20 @@ def setup_snowflake_database():
         GROUP BY user_id
         ORDER BY total_amount DESC
         """)
-        print("   ✓ Vue USER_TRANSACTION_SUMMARY créée")
+        print("   ✓ View USER_TRANSACTION_SUMMARY created")
         print()
         
-        # Vérifier les objets créés
-        print("8. Vérification des objets créés...")
+        # Verify created objects
+        print("8. Verifying created objects...")
         cursor.execute(f"SHOW TABLES IN SCHEMA {Config.SNOWFLAKE_DATABASE}.{Config.SNOWFLAKE_SCHEMA}")
         tables = cursor.fetchall()
-        print(f"   ✓ Tables créées: {len(tables)}")
+        print(f"   ✓ Tables created: {len(tables)}")
         for table in tables:
             print(f"     - {table[1]}")
         
         cursor.execute(f"SHOW VIEWS IN SCHEMA {Config.SNOWFLAKE_DATABASE}.{Config.SNOWFLAKE_SCHEMA}")
         views = cursor.fetchall()
-        print(f"   ✓ Vues créées: {len(views)}")
+        print(f"   ✓ Views created: {len(views)}")
         for view in views:
             print(f"     - {view[1]}")
         
@@ -144,12 +144,12 @@ def setup_snowflake_database():
         
         print()
         print("=" * 60)
-        print("✓ SETUP SNOWFLAKE TERMINÉ AVEC SUCCÈS!")
+        print("✓ SNOWFLAKE SETUP COMPLETED SUCCESSFULLY!")
         print("=" * 60)
         print()
-        print("Vous pouvez maintenant:")
-        print("  1. Tester la connexion: python test_snowflake_connection.py")
-        print("  2. Lancer le pipeline: ../scripts/run_pipeline.sh")
+        print("You can now:")
+        print("  1. Test connection: python test_snowflake_connection.py")
+        print("  2. Run pipeline: ../scripts/run_pipeline.sh")
         print()
         
         return True
@@ -157,9 +157,9 @@ def setup_snowflake_database():
     except Exception as e:
         print()
         print("=" * 60)
-        print("✗ ERREUR LORS DU SETUP")
+        print("✗ SETUP ERROR")
         print("=" * 60)
-        print(f"Erreur: {e}")
+        print(f"Error: {e}")
         print()
         import traceback
         traceback.print_exc()
