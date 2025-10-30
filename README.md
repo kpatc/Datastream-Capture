@@ -287,10 +287,6 @@ SNOWFLAKE_WAREHOUSE=COMPUTE_WH
 4. Push: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
-## 📜 License
-
-This project is licensed under the MIT License - see [LICENSE](LICENSE)
-
 ## 👥 Authors
 
 - **Josh** - *Initial work* - [kpatc](https://github.com/kpatc)
