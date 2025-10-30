@@ -9,6 +9,9 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
 
   kafka:
     image: confluentinc/cp-kafka:6.2.0
@@ -26,6 +29,8 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka-data:/var/lib/kafka/data
 
   schema-registry:
     image: confluentinc/cp-schema-registry:6.2.0
@@ -55,6 +60,8 @@ services:
     ports:
       - 6532:6532
       - 5433:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
   adminer:
     image: adminer:4.8.1
@@ -80,18 +87,6 @@ services:
       KAFKA_BROKERS: "kafka:29092"
       KAFKA_SCHEMAREGISTRY_ENABLED: "true"
       KAFKA_SCHEMAREGISTRY_URLS: "http://schema-registry:8081"
-
-  kafka-connect-ui:
-    image: landoop/kafka-connect-ui:0.9.7
-    hostname: kafka-connect-ui
-    container_name: kafka-connect-ui
-    ports:
-        - "8000:8000"
-    environment:
-      CONNECT_URL: "http://kafka-connect:8083"
-    depends_on:
-        - kafka-connect
-
   kafka-connect:
     image: debezium/connect:2.3
     container_name: kafka-connect
@@ -112,3 +107,24 @@ services:
       VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
       KEY_CONVERTER_SCHEMAS_ENABLE: "false"
       ENABLE_DEBEZIUM_SCRIPTING: "true"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - kafka-connect-data:/kafka/data
+
+volumes:
+  zookeeper-data:
+    driver: local
+  zookeeper-logs:
+    driver: local
+  kafka-data:
+    driver: local
+  postgres-data:
+    driver: local
+  kafka-connect-data:
+    driver: local
+
+

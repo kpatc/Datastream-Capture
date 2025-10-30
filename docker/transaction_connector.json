@@ -1,0 +1,20 @@
+{
+  "name": "cdc-transactions",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    "plugin.name": "pgoutput",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "database.dbname": "postgres",
+    "topic.prefix": "postgres-transactions",
+    "slot.name": "debezium_slot_transactions",
+    "publication.name": "dbz_publication_transactions",
+    "table.include.list": "public.transactions",
+    "include.schema.changes": "true",
+    "database.history.kafka.bootstrap.servers": "kafka:29092",
+    "database.history.kafka.topic": "schema-changes.transactions"
+  }
+}

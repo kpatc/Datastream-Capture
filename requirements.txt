@@ -1,4 +1,12 @@
-apache-flink==1.17.0
+# Snowflake
 snowflake-connector-python==3.10.0
-kafka-python==2.0.2
-python-dotenv==1.0.0
+
+# Kafka (confluent-kafka est plus moderne et compatible Python 3.12)
+confluent-kafka
+
+# PostgreSQL (for testing)
+psycopg2-binary
+
+# Environment variables
+python-dotenv
+
